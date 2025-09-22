@@ -59,7 +59,7 @@ module LoggerHelper
           **metadata
         }.compact.to_json)
       else
-        logger.info([message, context, metadata.presence].compact.join(" - "))
+        logger.info([ message, context, metadata.presence ].compact.join(" - "))
       end
     end
   end
@@ -69,7 +69,7 @@ module LoggerHelper
     return unless Rails.env.development?
 
     Rails.logger.tagged("DEBUG") do |logger|
-      logger.debug([message, context, metadata.presence].compact.join(" - "))
+      logger.debug([ message, context, metadata.presence ].compact.join(" - "))
     end
   end
 
