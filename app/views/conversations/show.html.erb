@@ -1,0 +1,77 @@
+<% content_for :title, @conversation.title %>
+
+<%= turbo_stream_from "conversation_#{@conversation.id}" %>
+
+<!-- Header with Top Bar -->
+<div class="flex items-center justify-between px-6 py-3 border-b border-gray-700">
+  <div class="flex items-center space-x-4">
+    <%= link_to conversations_path, class: "flex items-center space-x-2 text-gray-400 hover:text-white transition-colors" do %>
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+      </svg>
+      <span class="text-sm font-medium">All Chats</span>
+    <% end %>
+
+    <div class="flex items-center space-x-3">
+      <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-3.582 8-8 8a8.959 8.959 0 01-4.906-1.405L3 21l2.595-5.094A8.96 8.96 0 013 12c0-4.418 3.582-8 8-8s8 3.582 8 8z"></path>
+        </svg>
+      </div>
+      <div>
+        <h1 class="text-lg font-semibold text-white truncate"><%= @conversation.title %></h1>
+        <p class="text-sm text-gray-400"><%= @conversation.ai_model_display_name %></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex items-center space-x-2">
+    <%= link_to new_conversation_path, class: "px-3 py-1.5 text-sm text-gray-400 hover:text-white border border-gray-600 hover:border-gray-500 rounded-lg transition-colors" do %>
+      New Chat
+    <% end %>
+    <%= link_to conversation_path(@conversation, method: :delete),
+        data: {
+          confirm: "Are you sure you want to delete this conversation?",
+          turbo_method: :delete
+        },
+        class: "p-2 text-gray-400 hover:text-red-400 transition-colors" do %>
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+      </svg>
+    <% end %>
+  </div>
+</div>
+
+<!-- Messages Container -->
+<div class="flex-1 flex flex-col" data-controller="chat">
+  <div class="flex-1 overflow-hidden">
+    <div id="messages-container" class="h-full overflow-y-auto px-6 py-6" data-chat-target="messagesContainer">
+      <div class="max-w-4xl mx-auto space-y-6" id="messages">
+        <% if @messages.any? %>
+          <% @messages.each do |message| %>
+            <%= render partial: 'messages/message', locals: { message: message } %>
+          <% end %>
+        <% else %>
+          <div class="text-center py-12">
+            <div class="w-16 h-16 bg-gray-800 border border-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-3.582 8-8 8a8.959 8.959 0 01-4.906-1.405L3 21l2.595-5.094A8.96 8.96 0 013 12c0-4.418 3.582-8 8-8s8 3.582 8 8z"></path>
+              </svg>
+            </div>
+            <h3 class="text-lg font-medium text-white mb-2">Start your conversation</h3>
+            <p class="text-gray-400">Send a message to begin chatting with <%= @conversation.ai_model_display_name %></p>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Message Input -->
+  <div class="border-t border-gray-700 flex-shrink-0">
+    <div class="max-w-4xl mx-auto px-6 py-6">
+      <div id="message-form">
+        <%= render partial: 'messages/form', locals: { conversation: @conversation, message: @message } %>
+      </div>
+    </div>
+  </div>
+</div>

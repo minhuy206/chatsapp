@@ -1,0 +1,41 @@
+<div class="<%= message.role == 'user' ? 'flex justify-end' : 'flex justify-start' %>">
+  <div class="max-w-xs lg:max-w-md xl:max-w-2xl">
+    <% if message.role == 'user' %>
+      <div class="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl px-4 py-3 shadow-lg">
+        <div class="text-sm leading-relaxed"><%= simple_format(message.content) %></div>
+        <div class="text-xs opacity-75 mt-2 text-right">
+          <%= message.created_at.strftime("%I:%M %p") %>
+        </div>
+      </div>
+    <% else %>
+      <div class="bg-gray-800 border border-gray-700 rounded-2xl px-4 py-3 shadow-lg">
+        <div class="flex items-start space-x-3">
+          <div class="flex-shrink-0 mt-1">
+            <% case ai_model %>
+            <% when 'gpt-4', 'gpt-3.5-turbo' %>
+              <div class="w-7 h-7 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                </svg>
+              </div>
+            <% when 'claude-3-sonnet', 'claude-3-haiku' %>
+              <div class="w-7 h-7 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center">
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 919-9"></path>
+                </svg>
+              </div>
+            <% end %>
+          </div>
+          <div class="flex-1">
+            <div class="text-sm leading-relaxed text-gray-100">
+              <%= simple_format(message.content) %>
+            </div>
+            <div class="text-xs text-gray-400 mt-2">
+              <%= message.created_at.strftime("%I:%M %p") %>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>

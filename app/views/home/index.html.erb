@@ -1,0 +1,79 @@
+<% content_for :title, "AI Chat" %>
+
+<%= turbo_stream_from "home_chat" %>
+
+<!-- Header with Top Bar -->
+<div class="flex items-center justify-between px-6 py-3 border-b border-gray-700">
+  <div class="flex items-center space-x-4">
+    <div class="flex items-center space-x-2">
+      <button class="p-2 hover:bg-gray-700 rounded-lg transition-colors">
+        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+        </svg>
+      </button>
+      <button class="p-2 hover:bg-gray-700 rounded-lg transition-colors">
+        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+  <div class="flex items-center space-x-3">
+    <button class="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-all">
+      Upgrade
+    </button>
+  </div>
+</div>
+
+<!-- Main Content -->
+<div class="flex-1 flex flex-col">
+  <!-- Search Section -->
+  <div class="flex-1 flex flex-col items-center justify-center px-6 py-12">
+    <div class="max-w-4xl w-full">
+      <h2 class="text-4xl font-bold text-center text-white mb-8">
+        Enhance your productivity with AI
+      </h2>
+
+      <!-- Search Bar -->
+      <div class="mb-12">
+        <%= form_with url: root_path, method: :post, local: false,
+            data: { controller: "home-chat", action: "submit->home-chat#submit" },
+            class: "relative" do |form| %>
+          <div class="relative bg-gray-800 border border-gray-600 rounded-2xl overflow-hidden focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500">
+            <%= form.hidden_field :ai_model, value: "gpt-4o" %>
+
+            <!-- Input Area -->
+            <div class="flex items-center px-4 py-3">
+              <%= form.text_area :content,
+                  placeholder: "How can I help?",
+                  rows: 1,
+                  data: {
+                    "home-chat-target": "input",
+                    action: "input->home-chat#autoResize keydown->home-chat#handleKeydown"
+                  },
+                  class: "flex-1 bg-transparent text-white placeholder-gray-400 border-0 resize-none focus:ring-0 focus:outline-none" %>
+
+              <div class="flex items-center space-x-3 ml-4">
+                <div class="text-sm text-gray-400">3/3</div>
+                <button type="submit"
+                        data-home-chat-target="submitButton"
+                        class="p-2 text-gray-400 hover:text-white transition-colors disabled:opacity-50">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+
+      <!-- Chat Interface Section -->
+      <div class="mb-8">
+        <div class="space-y-6" id="chat-messages">
+          <!-- Messages will appear here -->
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,74 @@
+<div class="bg-gray-800 border border-gray-600 rounded-2xl overflow-hidden focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500">
+  <%= form_with(model: [conversation, message],
+      local: false,
+      data: {
+        controller: "message-form",
+        action: "submit->message-form#submit",
+        message_form_target: "form"
+      },
+      class: "flex items-end space-x-3 p-4") do |form| %>
+
+    <div class="flex-1">
+      <%= form.text_area :content,
+          placeholder: "How can I help?",
+          rows: 1,
+          data: {
+            message_form_target: "input",
+            action: "keydown->message-form#handleKeydown input->message-form#autoResize"
+          },
+          class: "block w-full resize-none bg-transparent text-white placeholder-gray-400 border-0 focus:ring-0 focus:outline-none text-sm leading-relaxed" %>
+
+      <% if message.errors.any? %>
+        <div class="mt-2 text-sm text-red-400">
+          <% message.errors.full_messages.each do |error| %>
+            <div><%= error %></div>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+
+    <div class="flex items-center space-x-3">
+      <!-- Message counter -->
+      <div class="text-sm text-gray-400">3/3</div>
+
+      <!-- Action buttons -->
+      <div class="flex space-x-2">
+        <button type="button" class="p-2 text-gray-400 hover:text-gray-300 transition-colors" title="Attach file">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
+          </svg>
+        </button>
+
+        <%= form.submit class: "p-2 text-gray-400 hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed",
+            data: { message_form_target: "submitButton" },
+            title: "Send message" do %>
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+          </svg>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</div>
+
+<!-- Loading indicator (initially hidden) -->
+<div id="typing-indicator" class="hidden flex justify-start mt-4">
+  <div class="max-w-xs lg:max-w-md xl:max-w-2xl">
+    <div class="bg-gray-800 border border-gray-700 rounded-2xl px-4 py-3 shadow-lg">
+      <div class="flex items-start space-x-3">
+        <div class="flex-shrink-0 mt-1">
+          <div class="w-7 h-7 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+            </svg>
+          </div>
+        </div>
+        <div class="flex space-x-1 mt-2">
+          <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+          <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.1s;"></div>
+          <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.2s;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
