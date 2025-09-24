@@ -1,0 +1,44 @@
+<!-- Voting Interface -->
+<div id="vote-buttons-<%= message.id %>" class="px-6 py-4 bg-gray-800 border-b border-gray-700">
+  <div class="max-w-4xl mx-auto text-center">
+    <div class="mb-4">
+      <h4 class="text-lg font-medium text-white mb-2">Which response was better?</h4>
+      <p class="text-sm text-gray-400">Help improve AI models by voting on the responses</p>
+    </div>
+
+    <div class="flex items-center justify-center space-x-4">
+      <!-- Vote for Model A -->
+      <%= form_with url: vote_comparison_path(conversation), method: :patch, local: false,
+          data: { turbo_stream: true },
+          class: "inline-block" do |form| %>
+        <%= form.hidden_field :message_id, value: message.id %>
+        <%= form.hidden_field :vote, value: 1 %>
+        <%= form.submit conversation.model_a_display_name,
+            class: "px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center space-x-2",
+            data: { action: "click->comparison-voting#vote" } %>
+      <% end %>
+
+      <!-- Tie Vote -->
+      <%= form_with url: vote_comparison_path(conversation), method: :patch, local: false,
+          data: { turbo_stream: true },
+          class: "inline-block" do |form| %>
+        <%= form.hidden_field :message_id, value: message.id %>
+        <%= form.hidden_field :vote, value: 0 %>
+        <%= form.submit "Tie",
+            class: "px-6 py-3 bg-gray-600 hover:bg-gray-500 text-white rounded-lg font-medium transition-colors",
+            data: { action: "click->comparison-voting#vote" } %>
+      <% end %>
+
+      <!-- Vote for Model B -->
+      <%= form_with url: vote_comparison_path(conversation), method: :patch, local: false,
+          data: { turbo_stream: true },
+          class: "inline-block" do |form| %>
+        <%= form.hidden_field :message_id, value: message.id %>
+        <%= form.hidden_field :vote, value: 2 %>
+        <%= form.submit conversation.model_b_display_name,
+            class: "px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors flex items-center space-x-2",
+            data: { action: "click->comparison-voting#vote" } %>
+      <% end %>
+    </div>
+  </div>
+</div>

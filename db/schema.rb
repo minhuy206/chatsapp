@@ -19,6 +19,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_17_071453) do
     t.string "ai_model"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "comparison_mode", default: false, null: false
+    t.string "model_a"
+    t.string "model_b"
+    t.index ["comparison_mode"], name: "index_conversations_on_comparison_mode"
   end
 
   create_table "messages", force: :cascade do |t|
@@ -27,6 +31,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_17_071453) do
     t.bigint "conversation_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "model_version"
+    t.integer "comparison_vote", default: 0
+    t.index ["comparison_vote"], name: "index_messages_on_comparison_vote"
     t.index ["conversation_id"], name: "index_messages_on_conversation_id"
   end
 

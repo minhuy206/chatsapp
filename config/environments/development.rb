@@ -50,10 +50,13 @@ Rails.application.configure do
   config.active_record.verbose_query_logs = true
 
   # Append comments with runtime information tags to SQL queries in logs.
-  config.active_record.query_log_tags_enabled = true
+  config.active_record.query_log_tags_enabled = false
 
-  # Highlight code that enqueued background job in logs.
-  config.active_job.verbose_enqueue_logs = true
+  # Reduce ActiveJob log verbosity in development
+  config.active_job.verbose_enqueue_logs = false
+
+  # Set log level to reduce ActiveJob noise
+  config.log_level = :info
 
   # Raises error for missing translations.
   # config.i18n.raise_on_missing_translations = true

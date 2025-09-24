@@ -1,0 +1,48 @@
+<!-- AI Response in Comparison Side-by-Side Layout -->
+<div class="flex border-b border-gray-700">
+  <!-- Model A Response -->
+  <div class="flex-1 px-6 py-4 border-r border-gray-700 <%= side == :model_a ? 'bg-blue-50/5' : 'bg-gray-900/50' %>">
+    <% if side == :model_a %>
+      <div class="flex items-start space-x-3">
+        <div class="flex-shrink-0 w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+          <div class="w-2 h-2 bg-white rounded-full"></div>
+        </div>
+        <div class="flex-1">
+          <div class="font-medium text-white mb-1 flex items-center space-x-2">
+            <span><%= conversation.model_a_display_name %></span>
+            <span class="text-xs text-blue-400 bg-blue-900/50 px-2 py-0.5 rounded">A</span>
+          </div>
+          <div class="text-gray-100 leading-relaxed prose prose-invert prose-sm max-w-none">
+            <%= simple_format(message.content, {}, wrapper_tag: "div") %>
+          </div>
+          <div class="text-xs text-gray-400 mt-3">
+            <%= message.formatted_created_at %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- Model B Response -->
+  <div class="flex-1 px-6 py-4 <%= side == :model_b ? 'bg-purple-50/5' : 'bg-gray-900/50' %>">
+    <% if side == :model_b %>
+      <div class="flex items-start space-x-3">
+        <div class="flex-shrink-0 w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center">
+          <div class="w-2 h-2 bg-white rounded-full"></div>
+        </div>
+        <div class="flex-1">
+          <div class="font-medium text-white mb-1 flex items-center space-x-2">
+            <span><%= conversation.model_b_display_name %></span>
+            <span class="text-xs text-purple-400 bg-purple-900/50 px-2 py-0.5 rounded">B</span>
+          </div>
+          <div class="text-gray-100 leading-relaxed prose prose-invert prose-sm max-w-none">
+            <%= simple_format(message.content, {}, wrapper_tag: "div") %>
+          </div>
+          <div class="text-xs text-gray-400 mt-3">
+            <%= message.formatted_created_at %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>

@@ -15,6 +15,17 @@ Rails.application.routes.draw do
 
   # Chat application routes
   resources :conversations do
+    member do
+      get :quick_show
+      patch :update_title
+    end
     resources :messages, only: [ :create ]
+  end
+
+  # Model comparison routes
+  resources :comparisons, only: [ :index, :new, :create, :show ] do
+    member do
+      patch :vote
+    end
   end
 end

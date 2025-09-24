@@ -72,10 +72,20 @@ class AiResponseJob < ApplicationJob
         message_count: conversation_history&.count
       }
 
+      # Log the error immediately with clear visibility
+      Rails.logger.error "🚨 AI RESPONSE JOB FAILED 🚨"
+      Rails.logger.error "💥 Error: #{e.message}"
+      Rails.logger.error "🤖 Model: #{conversation&.ai_model}"
+      Rails.logger.error "📊 Context: #{error_context.to_json}"
+
+      # Use centralized error handling
       AiErrorHandler.handle_error(e, error_context)
 
-      Rails.logger.error "AI Response Job failed: #{e.message}"
-      Rails.logger.error "Full backtrace: #{e.backtrace.join("\n")}"
+      # Full backtrace in development only
+      if Rails.env.development?
+        Rails.logger.error "🔍 Full backtrace:"
+        Rails.logger.error e.backtrace.join("\n")
+      end
 
       # Create an error message for the user
       error_message = conversation.messages.create!(

@@ -17,7 +17,8 @@ class ClaudeService
   # @param model [String] The Claude model to use (default: "claude-3-sonnet")
   def initialize(model = "claude-3-sonnet")
     @model = model_mapping(model)
-    @client = Anthropic::Client.new(access_token: Rails.application.credentials.anthropic_api_key)
+    @client = Anthropic::Client.new(api_key: ENV["ANTHROPIC_API_KEY"] ||
+        raise("ANTHROPIC_API_KEY environment variable required"))
   end
 
   # Generate chat completion using Anthropic Claude models.
@@ -26,12 +27,10 @@ class ClaudeService
   # @return [String] The AI-generated response text
   # @raise [StandardError] When API call fails or returns invalid response
   def chat(conversation_history)
-    response = @client.messages(
-      parameters: {
+    response = @client.messages.create(
         model: @model,
         max_tokens: 1000,
         messages: format_messages(conversation_history)
-      }
     )
 
     response["content"].first["text"]
@@ -45,11 +44,19 @@ class ClaudeService
       timestamp: Time.current.iso8601
     }
 
-    # Use centralized error handling if available
+    # Always log immediately for development visibility
+    Rails.logger.error "🚨 CLAUDE ERROR CAUGHT: #{e.message}"
+    Rails.logger.error "📊 Claude Context: #{error_context.to_json}"
+
+    # Also log the error class and backtrace for debugging
+    if Rails.env.development?
+      Rails.logger.error "🔍 Error Class: #{e.class.name}"
+      Rails.logger.error "🔍 Backtrace: #{e.backtrace&.first(3)&.join("\n")}"
+    end
+
+    # Use centralized error handling for additional processing
     if defined?(AiErrorHandler)
       AiErrorHandler.handle_error(e, error_context)
-    else
-      Rails.logger.error "Claude API Error: #{e.message} | Context: #{error_context}"
     end
 
     "I apologize, but I'm having trouble processing your request right now. Please try again in a moment."
@@ -75,8 +82,8 @@ class ClaudeService
   def format_messages(conversation_history)
     conversation_history.map do |message|
       {
-        role: message.role,
-        content: message.content
+        "role" => message.role,
+        "content" => message.content
       }
     end
   end

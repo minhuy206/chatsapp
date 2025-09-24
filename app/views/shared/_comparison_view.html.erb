@@ -1,0 +1,58 @@
+<!-- Active Comparison Interface -->
+<div class="flex-1 flex flex-col" data-controller="comparison-chat">
+  <!-- Models Header -->
+  <div class="flex border-b border-gray-700 bg-gray-800">
+    <div class="flex-1 px-6 py-4 border-r border-gray-700">
+      <div class="flex items-center space-x-3">
+        <div class="w-3 h-3 bg-blue-500 rounded-full"></div>
+        <div>
+          <h3 class="text-lg font-semibold text-white">
+            <%= conversation.model_a_display_name %>
+          </h3>
+          <p class="text-sm text-gray-400">Model A</p>
+        </div>
+      </div>
+    </div>
+    <div class="flex-1 px-6 py-4">
+      <div class="flex items-center space-x-3">
+        <div class="w-3 h-3 bg-purple-500 rounded-full"></div>
+        <div>
+          <h3 class="text-lg font-semibold text-white">
+            <%= conversation.model_b_display_name %>
+          </h3>
+          <p class="text-sm text-gray-400">Model B</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Messages Area -->
+  <div class="flex-1 overflow-y-auto">
+    <div id="comparison-messages" class="min-h-full">
+      <!-- Messages will be inserted here -->
+    </div>
+  </div>
+
+  <!-- Input Area -->
+  <div class="border-t border-gray-700 bg-gray-800 p-6">
+    <%= form_with url: comparisons_path, local: false, data: { turbo_stream: true } do |form| %>
+      <%= form.hidden_field :model_a, value: conversation.model_a %>
+      <%= form.hidden_field :model_b, value: conversation.model_b %>
+
+      <div class="flex space-x-4">
+        <div class="flex-1">
+          <%= form.text_area :content,
+              placeholder: "Continue the comparison with another prompt...",
+              rows: 1,
+              class: "w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none",
+              data: {
+                controller: "autosize",
+                action: "input->autosize#resize keydown->comparison-chat#handleKeydown"
+              } %>
+        </div>
+        <%= form.submit "Compare",
+            class: "bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-all" %>
+      </div>
+    <% end %>
+  </div>
+</div>

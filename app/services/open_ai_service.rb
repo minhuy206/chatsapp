@@ -1,7 +1,7 @@
 # OpenAI GPT service for chat completions.
 #
 # Handles communication with OpenAI's GPT models including gpt-4, gpt-4o, and gpt-3.5-turbo.
-# Requires OPENAI_ACCESS_TOKEN environment variable to be set.
+# Requires OPENAI_API_KEY environment variable to be set.
 #
 # @example Basic usage
 #   service = OpenAiService.new("gpt-4o")
@@ -14,12 +14,12 @@ class OpenAiService
   # Initialize the OpenAI service with specified model.
   #
   # @param model [String] The GPT model to use (default: "gpt-4o-mini")
-  # @raise [RuntimeError] When OPENAI_ACCESS_TOKEN environment variable is missing
+  # @raise [RuntimeError] When OPENAI_API_KEY environment variable is missing
   def initialize(model = "gpt-4o-mini")
     @model = model
     @client = OpenAI::Client.new(
-      access_token: ENV["OPENAI_ACCESS_TOKEN"] ||
-        raise("OPENAI_ACCESS_TOKEN environment variable required")
+      access_token: ENV["OPENAI_API_KEY"] ||
+        raise("OPENAI_API_KEY environment variable required")
     )
   end
 
@@ -49,14 +49,16 @@ class OpenAiService
       timestamp: Time.current.iso8601
     }
 
-    # Use centralized error handling if available
+    # Use centralized error handling - it handles all logging
     if defined?(AiErrorHandler)
       AiErrorHandler.handle_error(e, error_context)
     else
-      Rails.logger.error "OpenAI API Error: #{e.message} | Context: #{error_context}"
+      # Fallback logging if AiErrorHandler not available
+      Rails.logger.error "🚨 OpenAI Chat Failed: #{e.message}"
+      Rails.logger.error "📊 Context: #{error_context.to_json}"
     end
 
-    "I apologize, but I'm having trouble processing your request right now. Please try again."
+    "I apologize, but I'm having trouble processing your request right now. Please try again in a moment."
   end
 
   private

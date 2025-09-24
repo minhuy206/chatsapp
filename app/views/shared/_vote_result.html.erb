@@ -1,0 +1,25 @@
+<!-- Vote Result Display -->
+<div id="vote-buttons-<%= message.id %>" class="px-6 py-4 bg-gray-800 border-b border-gray-700">
+  <div class="max-w-4xl mx-auto text-center">
+    <div class="mb-4">
+      <h4 class="text-lg font-medium text-white mb-2">Your Vote</h4>
+    </div>
+
+    <div class="inline-flex items-center space-x-2 px-4 py-2 rounded-lg bg-gray-700">
+      <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+      </svg>
+      <span class="text-white font-medium">
+        <% if message.vote_for_model_a? %>
+          Voted for <%= conversation.model_a_display_name %>
+        <% elsif message.vote_for_model_b? %>
+          Voted for <%= conversation.model_b_display_name %>
+        <% else %>
+          Voted Tie
+        <% end %>
+      </span>
+    </div>
+
+    <p class="text-sm text-gray-400 mt-3">Thank you for your feedback!</p>
+  </div>
+</div>

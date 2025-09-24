@@ -1,0 +1,16 @@
+<div class="conversation-view flex flex-col h-full">
+  <!-- Messages Container -->
+  <div id="chat-messages" class="flex-1 overflow-y-auto p-6 space-y-4">
+    <% (defined?(messages) ? messages : conversation.messages.by_creation_order).each do |message| %>
+      <%= render partial: "shared/message", locals: { message: message, ai_model: conversation.ai_model } %>
+    <% end %>
+  </div>
+
+  <!-- Message Input Form -->
+  <div class="border-t border-gray-700 bg-gray-800">
+    <%= render partial: "shared/message_form", locals: {
+      conversation: conversation,
+      message: defined?(message) ? message : Message.new
+    } %>
+  </div>
+</div>

@@ -1,0 +1,40 @@
+<div class="empty-chat flex flex-col items-center justify-center h-full text-center p-8">
+  <div class="w-20 h-20 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center mb-6">
+    <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-3.582 8-8 8a8.959 8.959 0 01-4.906-1.405L3 21l2.595-5.094A8.96 8.96 0 013 12c0-4.418 3.582-8 8-8s8 3.582 8 8z"></path>
+    </svg>
+  </div>
+
+  <h2 class="text-2xl font-bold text-white mb-2">Start a New Conversation</h2>
+  <p class="text-gray-400 text-lg mb-8 max-w-md">
+    Choose an AI model and begin chatting. Your conversations will appear in the sidebar for easy access.
+  </p>
+
+  <!-- Quick Start Form -->
+  <div class="w-full max-w-2xl">
+    <%= render partial: "shared/message_form", locals: {
+      conversation: nil,
+      message: Message.new,
+      placeholder: "Ask me anything to get started..."
+    } %>
+  </div>
+
+  <!-- Model Information -->
+  <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4 text-left max-w-2xl">
+    <div class="bg-gray-800 p-4 rounded-lg border border-gray-700">
+      <div class="flex items-center space-x-2 mb-2">
+        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+        <span class="text-sm font-medium text-white">GPT-4</span>
+      </div>
+      <p class="text-xs text-gray-400">Advanced reasoning and analysis</p>
+    </div>
+
+    <div class="bg-gray-800 p-4 rounded-lg border border-gray-700">
+      <div class="flex items-center space-x-2 mb-2">
+        <div class="w-3 h-3 bg-purple-500 rounded-full"></div>
+        <span class="text-sm font-medium text-white">Claude</span>
+      </div>
+      <p class="text-xs text-gray-400">Helpful, harmless, and honest</p>
+    </div>
+  </div>
+</div>

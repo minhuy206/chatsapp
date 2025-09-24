@@ -1,1 +1,25 @@
 @import "tailwindcss";
+
+/* Model Selector Dropdown Animations */
+[data-model-selector-target="dropdown"] {
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px) translateX(-50%);
+  transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease;
+}
+
+[data-model-selector-target="dropdown"].show {
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: translateY(0) translateX(-50%) !important;
+}
+
+/* Model Option Active State */
+[data-model-selector-target="modelOption"].active {
+  background-color: rgba(59, 130, 246, 0.1) !important;
+  border-left: 3px solid #3b82f6;
+}
+
+[data-model-selector-target="modelOption"].active .text-white {
+  color: #3b82f6 !important;
+}

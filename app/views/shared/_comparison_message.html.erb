@@ -1,0 +1,21 @@
+<!-- User Message in Comparison View -->
+<div class="px-6 py-4 border-b border-gray-700 bg-gray-800">
+  <div class="max-w-4xl mx-auto">
+    <div class="flex items-start space-x-3">
+      <div class="flex-shrink-0 w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center">
+        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+        </svg>
+      </div>
+      <div class="flex-1">
+        <div class="font-medium text-white mb-1">You</div>
+        <div class="text-gray-100 leading-relaxed">
+          <%= simple_format(message.content, {}, wrapper_tag: "div") %>
+        </div>
+        <div class="text-xs text-gray-400 mt-2">
+          <%= message.formatted_created_at %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

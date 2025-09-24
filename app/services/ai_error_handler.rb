@@ -103,7 +103,7 @@ class AiErrorHandler
       error_info[:auth_issue] = true
       error_info[:severity] = "critical"
 
-      env_var = provider == :openai ? "OPENAI_ACCESS_TOKEN" : "ANTHROPIC_API_KEY"
+      env_var = provider == :openai ? "OPENAI_API_KEY" : "ANTHROPIC_API_KEY"
       service_name = provider == :openai ? "OpenAI" : "Anthropic"
 
       auth_error = StandardError.new(

@@ -1,0 +1,109 @@
+<!-- Model Selection and Setup -->
+<div class="flex-1 flex flex-col items-center justify-center p-8">
+  <div class="max-w-4xl w-full">
+    <div class="text-center mb-8">
+      <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+        </svg>
+      </div>
+      <h3 class="text-2xl font-bold text-white mb-2">Choose Models to Compare</h3>
+      <p class="text-gray-400">Select two AI models and enter your prompt to see how they respond</p>
+    </div>
+
+    <%= form_with model: [:comparison], url: comparisons_path, local: false,
+        data: { controller: "comparison-setup", turbo_stream: true },
+        class: "space-y-6" do |form| %>
+
+      <!-- Model Selection Grid -->
+      <div class="grid md:grid-cols-2 gap-6">
+        <!-- Model A Selection -->
+        <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
+          <h4 class="text-lg font-semibold text-white mb-4 flex items-center">
+            <div class="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
+            Model A
+          </h4>
+          <div class="space-y-3">
+            <% ai_models.each do |model_key, display_name| %>
+              <label class="flex items-center p-3 rounded-lg border border-gray-600 hover:border-blue-500 cursor-pointer transition-colors model-option"
+                     data-model-side="a">
+                <%= form.radio_button :model_a, model_key,
+                    class: "sr-only model-radio",
+                    data: { action: "change->comparison-setup#selectModel" } %>
+                <div class="flex items-center space-x-3 w-full">
+                  <div class="w-4 h-4 border border-gray-400 rounded-full flex items-center justify-center model-indicator">
+                    <div class="w-2 h-2 bg-blue-500 rounded-full hidden model-selected"></div>
+                  </div>
+                  <div class="flex-1">
+                    <div class="font-medium text-white"><%= display_name %></div>
+                    <div class="text-xs text-gray-400">
+                      <%= model_key.include?('gpt') ? 'OpenAI' : 'Anthropic' %>
+                    </div>
+                  </div>
+                </div>
+              </label>
+            <% end %>
+          </div>
+        </div>
+
+        <!-- Model B Selection -->
+        <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
+          <h4 class="text-lg font-semibold text-white mb-4 flex items-center">
+            <div class="w-3 h-3 bg-purple-500 rounded-full mr-3"></div>
+            Model B
+          </h4>
+          <div class="space-y-3">
+            <% ai_models.each do |model_key, display_name| %>
+              <label class="flex items-center p-3 rounded-lg border border-gray-600 hover:border-purple-500 cursor-pointer transition-colors model-option"
+                     data-model-side="b">
+                <%= form.radio_button :model_b, model_key,
+                    class: "sr-only model-radio",
+                    data: { action: "change->comparison-setup#selectModel" } %>
+                <div class="flex items-center space-x-3 w-full">
+                  <div class="w-4 h-4 border border-gray-400 rounded-full flex items-center justify-center model-indicator">
+                    <div class="w-2 h-2 bg-purple-500 rounded-full hidden model-selected"></div>
+                  </div>
+                  <div class="flex-1">
+                    <div class="font-medium text-white"><%= display_name %></div>
+                    <div class="text-xs text-gray-400">
+                      <%= model_key.include?('gpt') ? 'OpenAI' : 'Anthropic' %>
+                    </div>
+                  </div>
+                </div>
+              </label>
+            <% end %>
+          </div>
+        </div>
+      </div>
+
+      <!-- Prompt Input -->
+      <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
+        <%= form.label :content, "Your Prompt", class: "block text-sm font-medium text-gray-300 mb-3" %>
+        <%= form.text_area :content,
+            placeholder: "Enter your prompt here... Both models will respond to this same prompt.",
+            rows: 4,
+            class: "w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none",
+            data: {
+              controller: "autosize",
+              action: "input->autosize#resize keydown->comparison-setup#handleKeydown"
+            } %>
+        <div class="flex justify-between items-center mt-3">
+          <div class="text-xs text-gray-400">
+            <span data-comparison-setup-target="charCount">0</span> characters
+          </div>
+          <div class="text-xs text-gray-400" data-comparison-setup-target="status"></div>
+        </div>
+      </div>
+
+      <!-- Submit Button -->
+      <div class="text-center">
+        <%= form.submit "Start Comparison",
+            class: "bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed",
+            data: {
+              comparison_setup_target: "submitButton",
+              action: "click->comparison-setup#startComparison"
+            } %>
+      </div>
+    <% end %>
+  </div>
+</div>

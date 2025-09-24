@@ -2,78 +2,116 @@
 
 <%= turbo_stream_from "home_chat" %>
 
-<!-- Header with Top Bar -->
-<div class="flex items-center justify-between px-6 py-3 border-b border-gray-700">
-  <div class="flex items-center space-x-4">
-    <div class="flex items-center space-x-2">
-      <button class="p-2 hover:bg-gray-700 rounded-lg transition-colors">
-        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-        </svg>
-      </button>
-      <button class="p-2 hover:bg-gray-700 rounded-lg transition-colors">
-        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<div class="flex h-screen bg-gray-900" data-controller="home-chat">
+  <!-- Chat History Sidebar -->
+  <div id="chat-sidebar"
+       class="w-80 bg-gray-800 border-r border-gray-700 flex flex-col transition-all duration-300"
+       data-controller="chat-sidebar"
+       data-chat-sidebar-collapsed-value="false">
+
+    <!-- Sidebar Header -->
+    <div class="flex items-center justify-between p-4 border-b border-gray-700">
+      <h2 class="text-lg font-semibold text-white">Chat History</h2>
+      <div class="flex items-center space-x-2">
+        <button data-action="click->chat-sidebar#toggleSidebar"
+                class="p-2 hover:bg-gray-700 rounded-lg transition-colors md:hidden">
+          <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="p-4 border-b border-gray-700">
+      <div class="relative">
+        <input type="text"
+               placeholder="Search conversations..."
+               data-chat-sidebar-target="searchInput"
+               data-action="input->chat-sidebar#search"
+               class="w-full bg-gray-700 border-0 rounded-lg px-3 py-2 text-white placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <svg class="w-4 h-4 text-gray-400 absolute right-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
         </svg>
-      </button>
+      </div>
     </div>
-  </div>
-  <div class="flex items-center space-x-3">
-    <button class="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-all">
-      Upgrade
-    </button>
-  </div>
-</div>
 
-<!-- Main Content -->
-<div class="flex-1 flex flex-col">
-  <!-- Search Section -->
-  <div class="flex-1 flex flex-col items-center justify-center px-6 py-12">
-    <div class="max-w-4xl w-full">
-      <h2 class="text-4xl font-bold text-center text-white mb-8">
-        Enhance your productivity with AI
-      </h2>
-
-      <!-- Search Bar -->
-      <div class="mb-12">
-        <%= form_with url: root_path, method: :post, local: false,
-            data: { controller: "home-chat", action: "submit->home-chat#submit" },
-            class: "relative" do |form| %>
-          <div class="relative bg-gray-800 border border-gray-600 rounded-2xl overflow-hidden focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500">
-            <%= form.hidden_field :ai_model, value: "gpt-4o" %>
-
-            <!-- Input Area -->
-            <div class="flex items-center px-4 py-3">
-              <%= form.text_area :content,
-                  placeholder: "How can I help?",
-                  rows: 1,
-                  data: {
-                    "home-chat-target": "input",
-                    action: "input->home-chat#autoResize keydown->home-chat#handleKeydown"
-                  },
-                  class: "flex-1 bg-transparent text-white placeholder-gray-400 border-0 resize-none focus:ring-0 focus:outline-none" %>
-
-              <div class="flex items-center space-x-3 ml-4">
-                <div class="text-sm text-gray-400">3/3</div>
-                <button type="submit"
-                        data-home-chat-target="submitButton"
-                        class="p-2 text-gray-400 hover:text-white transition-colors disabled:opacity-50">
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </div>
+    <!-- Conversations List -->
+    <div class="flex-1 overflow-y-auto" data-chat-sidebar-target="conversationList">
+      <div id="conversation-list" class="p-2 space-y-1">
+        <% @conversations.each do |conversation| %>
+          <%= render partial: "shared/conversation_item", locals: { conversation: conversation, current: false } %>
         <% end %>
       </div>
 
-      <!-- Chat Interface Section -->
-      <div class="mb-8">
-        <div class="space-y-6" id="chat-messages">
-          <!-- Messages will appear here -->
+      <!-- Empty State -->
+      <% if @conversations.empty? %>
+      <div class="flex flex-col items-center justify-center h-full text-center p-6">
+        <div class="w-12 h-12 bg-gray-700 rounded-full flex items-center justify-center mb-4">
+          <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-3.582 8-8 8a8.959 8.959 0 01-4.906-1.405L3 21l2.595-5.094A8.96 8.96 0 013 12c0-4.418 3.582-8 8-8s8 3.582 8 8z"></path>
+          </svg>
+        </div>
+        <p class="text-gray-400 text-sm">No conversations yet</p>
+        <p class="text-gray-500 text-xs mt-1">Start a new chat to see it here</p>
+      </div>
+      <% end %>
+    </div>
+
+    <!-- New Chat Button -->
+    <div class="p-4 border-t border-gray-700">
+      <button onclick="location.reload()"
+              class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-2 px-4 rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-all text-sm">
+        + New Chat
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Chat Area -->
+  <div class="flex-1 flex flex-col">
+    <!-- Top Header -->
+    <div class="flex items-center justify-between px-6 py-3 border-b border-gray-700 bg-gray-800">
+      <div class="flex items-center space-x-4">
+        <button data-action="click->chat-sidebar#toggleSidebar"
+                class="p-2 hover:bg-gray-700 rounded-lg transition-colors md:hidden">
+          <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+          </svg>
+        </button>
+
+        <div>
+          <h1 id="current-conversation-title" class="text-lg font-semibold text-white">
+            <% if @current_conversation %>
+              <%= @current_conversation.title %>
+            <% else %>
+              New Chat
+            <% end %>
+          </h1>
+          <p class="text-sm text-gray-400">AI Assistant</p>
         </div>
       </div>
+
+      <div class="flex items-center space-x-3">
+        <%= link_to new_comparison_path,
+            class: "bg-gradient-to-r from-orange-600 to-red-600 text-white px-4 py-2 rounded-lg font-medium hover:from-orange-700 hover:to-red-700 transition-all text-sm flex items-center space-x-2" do %>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+          </svg>
+          <span>Arena</span>
+        <% end %>
+        <button class="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-all text-sm">
+          Upgrade
+        </button>
+      </div>
+    </div>
+
+    <!-- Chat Content -->
+    <div id="main-chat-area" class="flex-1 flex flex-col">
+      <% if @current_conversation %>
+        <%= render partial: "shared/conversation_view", locals: { conversation: @current_conversation } %>
+      <% else %>
+        <%= render partial: "shared/empty_chat" %>
+      <% end %>
     </div>
   </div>
 </div>

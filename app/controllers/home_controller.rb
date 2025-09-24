@@ -1,7 +1,8 @@
 class HomeController < ApplicationController
   def index
-    @conversations = Conversation.recent.limit(10)
+    @conversations = Conversation.recent.includes(:messages).limit(20)
     @ai_models = Conversation.ai_models
+    @current_conversation = nil
   end
 
   def create
@@ -21,7 +22,8 @@ class HomeController < ApplicationController
     respond_to do |format|
       format.turbo_stream do
         render turbo_stream: [
-          turbo_stream.append("chat-messages", partial: "shared/message", locals: { message: @message, ai_model: @conversation.ai_model }),
+          turbo_stream.prepend("conversation-list", partial: "shared/conversation_item", locals: { conversation: @conversation, current: false }),
+          turbo_stream.replace("main-chat-area", partial: "shared/conversation_view", locals: { conversation: @conversation, message: @message }),
           turbo_stream.append("chat-messages", partial: "shared/ai_thinking")
         ]
       end
