@@ -1,0 +1,75 @@
+<%
+  form_url = conversation ? conversation_messages_path(conversation) : root_path
+  form_method = conversation ? :post : :post
+  placeholder_text = defined?(placeholder) ? placeholder : "Type your message..."
+  default_message = Message.new
+%>
+
+<%= form_with model: conversation ? [conversation, message || default_message] : false,
+              url: form_url,
+              method: form_method,
+              local: false,
+              class: "message-form p-4" do |form| %>
+  <div class="flex flex-col space-y-3">
+    <!-- AI Model Selection (only show for new conversations) -->
+    <% unless conversation %>
+      <div class="flex items-center space-x-4">
+        <label class="text-sm font-medium text-gray-300">Model:</label>
+        <div class="flex space-x-2">
+          <%= form.radio_button :ai_model, "gpt-4o",
+                checked: true,
+                class: "sr-only",
+                data: { action: "change->home-chat#selectModel" } %>
+          <%= form.label :ai_model_gpt_4o, class: "model-selector cursor-pointer px-3 py-1 rounded-full text-sm border border-gray-600 hover:border-blue-500 transition-colors text-gray-300 hover:text-white bg-blue-600 text-white border-blue-500" do %>
+            GPT-4
+          <% end %>
+
+          <%= form.radio_button :ai_model, "claude-3.5-sonnet",
+                class: "sr-only",
+                data: { action: "change->home-chat#selectModel" } %>
+          <%= form.label :ai_model_claude_3_5_sonnet, class: "model-selector cursor-pointer px-3 py-1 rounded-full text-sm border border-gray-600 hover:border-purple-500 transition-colors text-gray-300 hover:text-white" do %>
+            Claude
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- Message Input Area -->
+    <div class="flex space-x-3">
+      <div class="flex-1 relative">
+        <%= form.text_area :content,
+              placeholder: placeholder_text,
+              rows: 1,
+              class: "w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent",
+              data: {
+                controller: "autosize",
+                action: "keydown->home-chat#handleKeydown input->autosize#resize",
+                home_chat_target: "input"
+              } %>
+      </div>
+
+      <%= form.submit "Send",
+            class: "bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed",
+            data: {
+              home_chat_target: "submitButton",
+              action: "click->home-chat#sendMessage"
+            } %>
+    </div>
+
+    <!-- Character Counter and Status -->
+    <div class="flex justify-between items-center text-xs text-gray-400">
+      <span data-home-chat-target="status"></span>
+      <span data-home-chat-target="charCount">0 characters</span>
+    </div>
+  </div>
+<% end %>
+
+<style>
+  .model-selector.selected {
+    @apply bg-blue-600 text-white border-blue-500;
+  }
+
+  .model-selector[data-model="claude-3.5-sonnet"].selected {
+    @apply bg-purple-600 text-white border-purple-500;
+  }
+</style>

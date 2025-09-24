@@ -6,3 +6,24 @@ import { application } from "./application"
 
 import HelloController from "./hello_controller"
 application.register("hello", HelloController)
+
+import ModelSelectorController from "./model_selector_controller"
+application.register("model-selector", ModelSelectorController)
+
+import ChatSidebarController from "./chat_sidebar_controller"
+application.register("chat-sidebar", ChatSidebarController)
+
+import ComparisonSetupController from "./comparison_setup_controller"
+application.register("comparison-setup", ComparisonSetupController)
+
+import ComparisonChatController from "./comparison_chat_controller"
+application.register("comparison-chat", ComparisonChatController)
+
+import ComparisonVotingController from "./comparison_voting_controller"
+application.register("comparison-voting", ComparisonVotingController)
+
+import AutosizeController from "./autosize_controller"
+application.register("autosize", AutosizeController)
+
+import HomeChatController from "./home_chat_controller"
+application.register("home-chat", HomeChatController)

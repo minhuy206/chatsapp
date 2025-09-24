@@ -1,10 +1,14 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["input", "submitButton"]
+  static targets = ["input", "submitButton", "status", "charCount"]
+  static values = { title: String }
 
   connect() {
     this.autoResize()
+    this.setupCharCounter()
+    this.currentConversationId = null
+    this.selectedModel = "gpt-4o"
   }
 
   submit(event) {
@@ -19,14 +23,11 @@ export default class extends Controller {
     // Get selected model from sidebar or localStorage
     const selectedModel = this.getSelectedModel()
 
-    // Update hidden field with selected model
-    const hiddenInput = document.querySelector('input[name="ai_model"]')
+    // Update hidden field with selected model (if not already handled by model selector)
+    const hiddenInput = this.element.querySelector('input[name="ai_model"]')
     if (hiddenInput) {
       hiddenInput.value = selectedModel
     }
-
-    // Create the user message bubble immediately
-    this.addUserMessage(content)
 
     // Clear the input
     this.inputTarget.value = ""
@@ -152,16 +153,357 @@ export default class extends Controller {
   }
 
   getSelectedModel() {
-    // First try to get from sidebar selector
-    const sidebarSelector = document.querySelector('[data-controller*="sidebar-model-selector"]')
-    if (sidebarSelector) {
-      const activeButton = sidebarSelector.querySelector('.model-btn.active')
-      if (activeButton) {
-        return activeButton.dataset.model
+    // First try to get from model selector
+    const modelSelector = document.querySelector('[data-controller*="model-selector"]')
+    if (modelSelector) {
+      const hiddenField = modelSelector.querySelector('input[name="ai_model"]')
+      if (hiddenField && hiddenField.value) {
+        return hiddenField.value
       }
     }
 
     // Fallback to localStorage
-    return localStorage.getItem('selectedAIModel') || 'gpt-4o'
+    const saved = localStorage.getItem('selectedAIModel')
+    if (saved) {
+      try {
+        const { modelId } = JSON.parse(saved)
+        return modelId
+      } catch (e) {
+        // If JSON parse fails, fall back to direct value
+        return saved
+      }
+    }
+
+    // Final fallback
+    return 'gpt-4o'
+  }
+
+  // Load conversation via AJAX
+  loadConversation(event) {
+    event.preventDefault()
+    const conversationId = event.currentTarget.dataset.conversationId
+    const title = event.currentTarget.dataset.homeChatTitleValue
+
+    if (this.currentConversationId === conversationId) {
+      return // Already loaded
+    }
+
+    this.currentConversationId = conversationId
+    if (this.hasStatusTarget) {
+      this.statusTarget.textContent = "Loading conversation..."
+    }
+
+    // Mark current conversation as active
+    this.updateActiveConversation(event.currentTarget)
+
+    // Load conversation content
+    fetch(`/conversations/${conversationId}/quick_show`, {
+      method: 'GET',
+      headers: {
+        'Accept': 'text/vnd.turbo-stream.html',
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    })
+    .then(response => {
+      if (!response.ok) throw new Error('Network response was not ok')
+      return response.text()
+    })
+    .then(html => {
+      // Let Turbo handle the response
+      Turbo.renderStreamMessage(html)
+      if (this.hasStatusTarget) {
+        this.statusTarget.textContent = ""
+      }
+    })
+    .catch(error => {
+      console.error('Error loading conversation:', error)
+      if (this.hasStatusTarget) {
+        this.statusTarget.textContent = "Failed to load conversation"
+      }
+    })
+  }
+
+  // Send message (enhanced to work with sidebar)
+  sendMessage(event) {
+    const isFormEvent = event.target.tagName === 'FORM'
+    const form = isFormEvent ? event.target : event.target.closest('form')
+
+    if (!isFormEvent) {
+      event.preventDefault()
+    }
+
+    return this.submit({ ...event, target: form, preventDefault: () => {} })
+  }
+
+  // Model selection
+  selectModel(event) {
+    this.selectedModel = event.target.value
+    this.updateModelButtons(event.target)
+  }
+
+  // Edit conversation title
+  editTitle(event) {
+    event.preventDefault()
+    event.stopPropagation()
+
+    const conversationId = event.currentTarget.dataset.conversationId
+    const titleElement = document.querySelector(`#conversation-title-${conversationId}`)
+
+    if (!titleElement) return
+
+    const currentTitle = titleElement.textContent.trim()
+    const input = document.createElement('input')
+
+    input.type = 'text'
+    input.value = currentTitle
+    input.className = 'w-full bg-gray-600 text-white text-sm px-2 py-1 rounded border-0 focus:ring-1 focus:ring-blue-500'
+
+    // Replace title with input
+    titleElement.innerHTML = ''
+    titleElement.appendChild(input)
+    input.focus()
+    input.select()
+
+    // Save on Enter or blur
+    const saveTitle = () => {
+      const newTitle = input.value.trim()
+      if (newTitle && newTitle !== currentTitle) {
+        this.updateConversationTitle(conversationId, newTitle)
+      } else {
+        titleElement.textContent = currentTitle
+      }
+    }
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault()
+        saveTitle()
+      } else if (e.key === 'Escape') {
+        titleElement.textContent = currentTitle
+      }
+    })
+
+    input.addEventListener('blur', saveTitle)
+  }
+
+  // Delete conversation
+  deleteConversation(event) {
+    event.preventDefault()
+    event.stopPropagation()
+
+    const conversationId = event.currentTarget.dataset.conversationId
+    const conversationTitle = event.currentTarget.closest('.conversation-item')?.querySelector('.conversation-title')?.textContent?.trim() || 'this conversation'
+
+    if (!confirm(`Are you sure you want to delete "${conversationTitle}"? This action cannot be undone.`)) {
+      return
+    }
+
+    // Disable the delete button to prevent double-clicks
+    const deleteButton = event.currentTarget
+    deleteButton.disabled = true
+    deleteButton.classList.add('opacity-50', 'cursor-not-allowed')
+
+    // Show loading state
+    if (this.hasStatusTarget) {
+      this.statusTarget.textContent = 'Deleting conversation...'
+    }
+
+    // Get CSRF token
+    const token = document.querySelector('[name="csrf-token"]')?.getAttribute('content')
+
+    fetch(`/conversations/${conversationId}`, {
+      method: 'DELETE',
+      headers: {
+        'Accept': 'text/vnd.turbo-stream.html',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-Token': token
+      }
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      return response.text()
+    })
+    .then(html => {
+      // Process Turbo Stream response
+      Turbo.renderStreamMessage(html)
+
+      // Handle navigation if we're currently viewing the deleted conversation
+      if (this.currentConversationId === conversationId) {
+        this.currentConversationId = null
+
+        // If we're on the conversation show page, redirect to home
+        if (window.location.pathname.includes(`/conversations/${conversationId}`)) {
+          window.location.href = '/'
+        }
+      }
+
+      // Clear status
+      if (this.hasStatusTarget) {
+        this.statusTarget.textContent = ''
+      }
+
+      // Show success feedback
+      this.showNotification(`"${conversationTitle}" has been deleted`, 'success')
+    })
+    .catch(error => {
+      console.error('Error deleting conversation:', error)
+
+      // Re-enable the delete button
+      deleteButton.disabled = false
+      deleteButton.classList.remove('opacity-50', 'cursor-not-allowed')
+
+      // Show error message
+      const errorMessage = error.message.includes('403') ?
+        'You do not have permission to delete this conversation' :
+        'Failed to delete conversation. Please try again.'
+
+      if (this.hasStatusTarget) {
+        this.statusTarget.textContent = errorMessage
+        setTimeout(() => {
+          this.statusTarget.textContent = ''
+        }, 5000)
+      } else {
+        alert(errorMessage)
+      }
+    })
+  }
+
+  // Private helper methods
+  updateActiveConversation(activeElement) {
+    // Remove active state from all conversations
+    document.querySelectorAll('.conversation-item').forEach(item => {
+      item.classList.remove('bg-gray-700')
+    })
+
+    // Add active state to current conversation
+    activeElement.classList.add('bg-gray-700')
+  }
+
+  updateConversationTitle(conversationId, newTitle) {
+    fetch(`/conversations/${conversationId}/update_title`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'text/vnd.turbo-stream.html',
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: JSON.stringify({ title: newTitle })
+    })
+    .then(response => {
+      if (!response.ok) throw new Error('Network response was not ok')
+      return response.text()
+    })
+    .then(html => {
+      Turbo.renderStreamMessage(html)
+    })
+    .catch(error => {
+      console.error('Error updating title:', error)
+      // Revert to original title
+      const titleElement = document.querySelector(`#conversation-title-${conversationId}`)
+      if (titleElement) {
+        titleElement.textContent = titleElement.dataset.originalTitle || 'Chat'
+      }
+    })
+  }
+
+  updateModelButtons(selectedInput) {
+    // Remove selected class from all model buttons
+    document.querySelectorAll('.model-selector').forEach(label => {
+      label.classList.remove('selected')
+      label.classList.remove('bg-blue-600', 'text-white', 'border-blue-500')
+      label.classList.remove('bg-purple-600', 'border-purple-500')
+      label.classList.add('border-gray-600', 'text-gray-300')
+    })
+
+    // Add selected class to current model
+    const selectedLabel = selectedInput.nextElementSibling || selectedInput.previousElementSibling
+    if (selectedLabel) {
+      selectedLabel.classList.add('selected')
+      selectedLabel.classList.remove('border-gray-600', 'text-gray-300')
+
+      if (this.selectedModel.includes('claude')) {
+        selectedLabel.classList.add('bg-purple-600', 'text-white', 'border-purple-500')
+      } else {
+        selectedLabel.classList.add('bg-blue-600', 'text-white', 'border-blue-500')
+      }
+    }
+  }
+
+  setupCharCounter() {
+    const textareas = this.element.querySelectorAll('textarea')
+    textareas.forEach(textarea => {
+      textarea.addEventListener('input', () => {
+        if (this.hasCharCountTarget) {
+          const count = textarea.value.length
+          this.charCountTarget.textContent = `${count} characters`
+
+          if (count > 4000) {
+            this.charCountTarget.classList.add('text-red-400')
+          } else if (count > 3000) {
+            this.charCountTarget.classList.add('text-yellow-400')
+          } else {
+            this.charCountTarget.classList.remove('text-red-400', 'text-yellow-400')
+          }
+        }
+      })
+    })
+  }
+
+  // Show notification to user
+  showNotification(message, type = 'info') {
+    // Create notification element
+    const notification = document.createElement('div')
+    notification.className = `fixed top-4 right-4 px-4 py-3 rounded-lg shadow-lg z-50 transform transition-all duration-300 ${
+      type === 'success' ? 'bg-green-600 text-white' :
+      type === 'error' ? 'bg-red-600 text-white' :
+      'bg-blue-600 text-white'
+    }`
+
+    notification.innerHTML = `
+      <div class="flex items-center space-x-2">
+        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          ${type === 'success' ?
+            '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>' :
+            type === 'error' ?
+            '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>' :
+            '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>'
+          }
+        </svg>
+        <span class="text-sm font-medium">${message}</span>
+      </div>
+    `
+
+    // Add to page
+    document.body.appendChild(notification)
+
+    // Animate in
+    requestAnimationFrame(() => {
+      notification.classList.add('translate-x-0')
+      notification.classList.remove('translate-x-full')
+    })
+
+    // Auto remove after 4 seconds
+    setTimeout(() => {
+      notification.classList.add('translate-x-full')
+      notification.classList.remove('translate-x-0')
+
+      setTimeout(() => {
+        if (notification.parentNode) {
+          notification.parentNode.removeChild(notification)
+        }
+      }, 300)
+    }, 4000)
+
+    // Allow click to dismiss
+    notification.addEventListener('click', () => {
+      notification.classList.add('translate-x-full')
+      setTimeout(() => {
+        if (notification.parentNode) {
+          notification.parentNode.removeChild(notification)
+        }
+      }, 300)
+    })
   }
 }
