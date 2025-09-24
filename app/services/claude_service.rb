@@ -1,9 +1,30 @@
+# Anthropic Claude service for chat completions.
+#
+# Handles communication with Anthropic's Claude models including claude-3-opus,
+# claude-3-sonnet, claude-3-haiku, and claude-3.5-sonnet.
+# Requires anthropic_api_key to be configured in Rails credentials.
+#
+# @example Basic usage
+#   service = ClaudeService.new("claude-3.5-sonnet")
+#   response = service.chat(conversation_messages)
+#
+# @example Model selection
+#   service = ClaudeService.new("claude-3-opus") # Most capable
+#   service = ClaudeService.new("claude-3-haiku") # Fastest
 class ClaudeService
+  # Initialize the Claude service with specified model.
+  #
+  # @param model [String] The Claude model to use (default: "claude-3-sonnet")
   def initialize(model = "claude-3-sonnet")
     @model = model_mapping(model)
     @client = Anthropic::Client.new(access_token: Rails.application.credentials.anthropic_api_key)
   end
 
+  # Generate chat completion using Anthropic Claude models.
+  #
+  # @param conversation_history [Array<Message>] Array of conversation messages
+  # @return [String] The AI-generated response text
+  # @raise [StandardError] When API call fails or returns invalid response
   def chat(conversation_history)
     response = @client.messages(
       parameters: {
@@ -15,7 +36,22 @@ class ClaudeService
 
     response["content"].first["text"]
   rescue StandardError => e
-    Rails.logger.error "Claude API Error: #{e.message}"
+    # Enhanced error context for better debugging and monitoring
+    error_context = {
+      service: "anthropic",
+      model: @model,
+      message_count: conversation_history.size,
+      conversation_length: conversation_history.sum { |msg| msg.content&.length || 0 },
+      timestamp: Time.current.iso8601
+    }
+
+    # Use centralized error handling if available
+    if defined?(AiErrorHandler)
+      AiErrorHandler.handle_error(e, error_context)
+    else
+      Rails.logger.error "Claude API Error: #{e.message} | Context: #{error_context}"
+    end
+
     "I apologize, but I'm having trouble processing your request right now. Please try again in a moment."
   end
 

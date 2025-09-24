@@ -53,7 +53,19 @@ export default class extends Controller {
       }
     })
     .catch(error => {
-      console.error('Error:', error)
+      // Enhanced error handling with environment awareness
+      if (Rails.env === 'development') {
+        console.error('Chat Error:', error)
+      }
+
+      // Track errors for monitoring (when available)
+      if (window.errorTracker) {
+        window.errorTracker.captureException(error, {
+          context: 'chat_submission',
+          action: 'form_submit'
+        })
+      }
+
       this.addErrorMessage()
     })
     .finally(() => {
