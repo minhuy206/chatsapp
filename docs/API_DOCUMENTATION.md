@@ -1354,6 +1354,29 @@ export function FullChatApp() {
 
   return (
     <div className="chat-app">
+      <div className="chat-header">
+        <h2>LLM Chat</h2>
+        <div className="model-selector">
+          <label>Model:</label>
+          <select
+            value={selectedModel}
+            onChange={(e) => setSelectedModel(e.target.value)}
+            disabled={isStreaming}
+          >
+            {availableModels.map((model) => (
+              <option key={model.name} value={model.name}>
+                {model.name} ({model.provider})
+              </option>
+            ))}
+          </select>
+        </div>
+        {conversationId && (
+          <span className="conversation-id">
+            Conversation #{conversationId}
+          </span>
+        )}
+      </div>
+
       <div className="messages-container">
         {messages.map((msg, index) => (
           <div key={index} className={`message ${msg.role}`}>
@@ -1470,20 +1493,78 @@ export function FullChatApp() {
 
 ## Supported Models
 
-### OpenAI Models
-- `gpt-4-turbo` - Most capable, slower, more expensive
-- `gpt-4` - Very capable, balanced
-- `gpt-3.5-turbo` - Fast, cost-effective, good quality
+**Important:** Models are now managed in the database. Use the `/api/v1/models` endpoint to get the current list of available models.
 
-### Anthropic Models
-- `claude-3-opus-20240229` - Most capable
-- `claude-3-sonnet-20240229` - Balanced
-- `claude-3-haiku-20240307` - Fastest, most cost-effective
+### Dynamic Model Discovery
 
-### Google Models
-- `gemini-1.5-pro` - Most capable
-- `gemini-1.5-flash` - Fast and efficient
-- `gemini-1.0-pro` - Baseline model
+Fetch available models programmatically:
+
+```javascript
+const response = await fetch('http://localhost:3000/api/v1/models', {
+  headers: { 'Authorization': 'Bearer your-api-key' }
+});
+const { models } = await response.json();
+
+// Group by provider
+const modelsByProvider = models.reduce((acc, model) => {
+  if (!acc[model.provider]) acc[model.provider] = [];
+  acc[model.provider].push(model);
+  return acc;
+}, {});
+
+console.log('OpenAI models:', modelsByProvider.openai);
+console.log('Anthropic models:', modelsByProvider.anthropic);
+console.log('Google models:', modelsByProvider.google);
+```
+
+### Default Available Models (as of seeding)
+
+**OpenAI Models:**
+- `gpt-4o` - Latest, most capable (4K max tokens)
+- `gpt-4o-mini` - Fast, cost-effective (16K max tokens)
+- `gpt-4-turbo` - Very capable, balanced (4K max tokens)
+- `gpt-4` - Reliable, balanced (8K max tokens)
+- `gpt-3.5-turbo` - Fast, cost-effective (4K max tokens)
+
+**Anthropic Models:**
+- `claude-3-5-sonnet-20241022` - Latest Sonnet (8K max tokens)
+- `claude-3-5-haiku-20241022` - Latest Haiku (8K max tokens)
+- `claude-3-opus-20240229` - Most capable (4K max tokens)
+- `claude-3-sonnet-20240229` - Balanced (4K max tokens)
+- `claude-3-haiku-20240307` - Fastest, most cost-effective (4K max tokens)
+
+**Google Models:**
+- `gemini-2.0-flash-exp` - Experimental, latest (8K max tokens)
+- `gemini-1.5-pro` - Most capable (8K max tokens)
+- `gemini-1.5-flash` - Fast and efficient (8K max tokens)
+- `gemini-1.5-flash-8b` - Ultra fast, cost-effective (8K max tokens)
+
+### Model Selection Best Practices
+
+```typescript
+// React hook for model selection
+function useModelSelector() {
+  const [models, setModels] = useState([]);
+  const [selectedModel, setSelectedModel] = useState('gpt-4o');
+
+  useEffect(() => {
+    // Fetch available models
+    fetch('http://localhost:3000/api/v1/models', {
+      headers: { 'Authorization': `Bearer ${API_KEY}` }
+    })
+      .then(res => res.json())
+      .then(data => {
+        setModels(data.models);
+        // Auto-select first model if available
+        if (data.models.length > 0) {
+          setSelectedModel(data.models[0].name);
+        }
+      });
+  }, []);
+
+  return { models, selectedModel, setSelectedModel };
+}
+```
 
 ---
 
@@ -1524,6 +1605,12 @@ if (error.code === 'llm_rate_limit_error') {
 
 **Issue: Getting 404 for conversations**
 - Solution: Verify conversation ID exists and belongs to your API key
+
+**Issue: Model not found error**
+- Solution: Check `/api/v1/models` for current available models, model may be disabled or name incorrect
+
+**Issue: Empty models list**
+- Solution: Ensure database has been seeded with `rails db:seed`
 
 **Issue: Model not found**
 - Solution: Check model name spelling, verify model is supported

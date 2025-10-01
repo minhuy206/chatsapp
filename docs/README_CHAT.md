@@ -182,7 +182,3 @@ This codebase is designed to be easily extended for parallel execution. To add m
 2. Implement threading in `ChatController` for parallel execution
 3. Add mutex for SSE write synchronization
 4. Update SSE format to include model identifier per token
-
-## License
-
-MIT

@@ -7,9 +7,11 @@ Welcome to your multi-provider LLM chat backend! This Rails application provides
 Choose your path based on what you need:
 
 ### 🎯 Quick Start (5 minutes)
+
 **File**: [`SETUP.md`](SETUP.md)
 
 Get the app running quickly:
+
 1. Install dependencies
 2. Configure API keys
 3. Setup database
@@ -20,9 +22,11 @@ Get the app running quickly:
 ---
 
 ### 📖 Complete API Reference
+
 **File**: [`README_CHAT.md`](README_CHAT.md)
 
 Comprehensive documentation including:
+
 - All API endpoints with examples
 - Request/response formats
 - Available models per provider
@@ -34,9 +38,11 @@ Comprehensive documentation including:
 ---
 
 ### 🧪 Testing Guide
+
 **File**: [`TESTING.md`](TESTING.md)
 
 Test all three providers:
+
 - curl examples for each provider
 - JavaScript testing code
 - Troubleshooting common issues
@@ -47,9 +53,11 @@ Test all three providers:
 ---
 
 ### 🏗️ Implementation Details
+
 **File**: [`IMPLEMENTATION_SUMMARY.md`](IMPLEMENTATION_SUMMARY.md)
 
 Deep dive into:
+
 - Architecture decisions
 - How providers are integrated
 - Request flow diagrams
