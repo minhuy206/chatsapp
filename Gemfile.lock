@@ -187,7 +187,7 @@ GEM
       racc (~> 1.4)
     nokogiri (1.18.10-x86_64-linux-musl)
       racc (~> 1.4)
-    openai (0.27.1)
+    openai (0.28.0)
       connection_pool
     ostruct (0.6.3)
     parallel (1.27.0)
@@ -356,7 +356,7 @@ DEPENDENCIES
   dotenv-rails
   faraday (~> 2.8)
   kamal
-  openai (~> 0.3)
+  openai (~> 0.28)
   pg (~> 1.1)
   puma (>= 5.0)
   rack-cors
