@@ -36,7 +36,7 @@ gem "thruster", require: false
 gem "rack-cors"
 
 # Official LLM SDKs
-gem "openai", "~> 0.3"       # Official OpenAI Ruby SDK
+gem "openai", "~> 0.29"      # Official OpenAI Ruby SDK
 gem "anthropic", "~> 0.3"    # Official Anthropic Ruby SDK
 gem "faraday", "~> 2.8"      # HTTP client for Google Gemini (no official Ruby SDK)
 
