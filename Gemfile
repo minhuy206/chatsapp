@@ -37,7 +37,7 @@ gem "rack-cors"
 
 # Official LLM SDKs
 gem "openai", "~> 0.3"       # Official OpenAI Ruby SDK
-gem "anthropic", "~> 0.3"    # Official Anthropic Ruby SDK
+gem "anthropic", "~> 1.10"   # Official Anthropic Ruby SDK
 gem "faraday", "~> 2.8"      # HTTP client for Google Gemini (no official Ruby SDK)
 
 # Environment variables management
